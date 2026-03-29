@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle,
   IonContent, IonList, IonItem, IonLabel,
   IonItemSliding, IonItemOptions, IonItemOption,
-  IonIcon, IonFab, IonFabButton, IonText, IonNote
+  IonIcon, IonFab, IonFabButton, IonText, IonNote,
+  useIonViewWillEnter  // ← esto es la clave
 } from '@ionic/react';
 import { add, trash } from 'ionicons/icons';
 
@@ -15,9 +16,12 @@ interface Note {
 }
 
 const Notes: React.FC = () => {
-  const [notes, setNotes] = React.useState<Note[]>(() => {
+  const [notes, setNotes] = useState<Note[]>([]);
+
+  // Se ejecuta CADA VEZ que entras a esta pantalla
+  useIonViewWillEnter(() => {
     const saved = localStorage.getItem('mis_notas');
-    return saved ? JSON.parse(saved) : [];
+    setNotes(saved ? JSON.parse(saved) : []);
   });
 
   const deleteNote = (id: string) => {
@@ -34,7 +38,7 @@ const Notes: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-      <IonContent>
+      <IonContent className="ion-padding">
         {notes.length === 0 ? (
           <div style={{ textAlign: 'center', marginTop: '3rem' }}>
             <IonText color="medium">
@@ -46,11 +50,14 @@ const Notes: React.FC = () => {
           <IonList>
             {notes.map(note => (
               <IonItemSliding key={note.id}>
-                <IonItem>
+                <IonItem lines="full" style={{
+                  '--background': '#ffffff',
+                  marginBottom: '8px'
+                }}>
                   <IonLabel>
-                    <h2>{note.title}</h2>
-                    <p>{note.content}</p>
-                    <IonNote>{note.date}</IonNote>
+                    <h2 style={{ fontWeight: '600' }}>{note.title}</h2>
+                    <p style={{ color: '#666' }}>{note.content}</p>
+                    <IonNote style={{ fontSize: '12px' }}>{note.date}</IonNote>
                   </IonLabel>
                 </IonItem>
                 <IonItemOptions side="end">
