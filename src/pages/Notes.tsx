@@ -19,10 +19,11 @@ const Notes: React.FC = () => {
   const router = useIonRouter();
 
   useIonViewWillEnter(() => {
-    const saved: Note[] = JSON.parse(localStorage.getItem('mis_notas') || '[]');
-    setNotes(saved);
-    setAllTags(Array.from(new Set(saved.flatMap(n => n.tags || []))));
-  });
+  const saved: Note[] = JSON.parse(localStorage.getItem('mis_notas') || '[]');
+  setNotes(saved);
+  setAllTags(Array.from(new Set(saved.flatMap(n => n.tags || []))));
+  setActiveTag('Todas');
+});
 
   const deleteNote = (id: string) => {
     const updated = notes.filter(n => n.id !== id);
@@ -33,20 +34,23 @@ const Notes: React.FC = () => {
 
   // 2. Filtrado por tag activo + búsqueda
   const filtered = notes.filter(n => {
-    const matchSearch = n.title.toLowerCase().includes(search.toLowerCase());
-    const matchTag    = activeTag === 'Todas' || n.tags.includes(activeTag);
-    return matchSearch && matchTag;
+  const matchSearch = n.title.toLowerCase().includes(search.toLowerCase());
+  const matchTag = activeTag === 'Todas' || (n.tags ?? []).includes(activeTag);
+  return matchSearch && matchTag;
   });
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Mis Notas</IonTitle>
+          <IonTitle>Notas ME</IonTitle>
         </IonToolbar>
       </IonHeader>
 
       <IonContent className="ion-padding">
+        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 16, color: '#cc0000' }}>Mis Notas</h1>
+        <p style={{ color: '#888', fontSize: 13, marginTop: -12, marginBottom: 12 }}> {filtered.length} nota{filtered.length !== 1 ? 's' : ''}
+      </p>
 
         <IonSearchbar
           value={search}
@@ -106,8 +110,17 @@ const Notes: React.FC = () => {
                   }}
                 >
                   <IonLabel>
-                    <h2 style={{ fontWeight: 600, marginBottom: 4 }}>{note.title}</h2>
-                    <p style={{ color: '#888', fontSize: 13 }}>{note.content}</p>
+                    <h2 style={{ fontWeight: 600, marginBottom: 4, color: '#cc0000' }}>{note.title}</h2>
+                    <p style={{ 
+                    color: '#888', 
+                    fontSize: 13,
+                    overflow: 'hidden',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical'
+                  }}>
+                    {note.content}
+                  </p>
                     <IonNote style={{ fontSize: 12 }}>{note.date}</IonNote>
 
                     {note.tags?.length > 0 && (
