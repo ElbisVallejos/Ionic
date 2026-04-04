@@ -11,15 +11,15 @@ import { add, trash, pencil, ellipsisVertical, addOutline } from 'ionicons/icons
 import { Note } from '../types';
 
 const Notes: React.FC = () => {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes]           = useState<Note[]>([]);
   const [search, setSearch]         = useState('');
   const [activeTag, setActiveTag]   = useState('Todas');
   const [allTags, setAllTags]       = useState<string[]>([]);
   const [actionNote, setActionNote] = useState<Note | null>(null);
-  const router = useIonRouter(); // Para navegar programáticamente
-  
+  const router = useIonRouter();
+
   useIonViewWillEnter(() => {
-     const saved: Note[] = JSON.parse(localStorage.getItem('mis_notas') || '[]');
+    const saved: Note[] = JSON.parse(localStorage.getItem('mis_notas') || '[]');
     setNotes(saved);
     setAllTags(Array.from(new Set(saved.flatMap(n => n.tags || []))));
   });
@@ -31,13 +31,14 @@ const Notes: React.FC = () => {
     setAllTags(Array.from(new Set(updated.flatMap(n => n.tags || []))));
   };
 
+  // 2. Filtrado por tag activo + búsqueda
   const filtered = notes.filter(n => {
-  const matchSearch = n.title.toLowerCase().includes(search.toLowerCase());
-  const matchTag    = activeTag === 'Todas' || n.tags.includes(activeTag);
-  return matchSearch && matchTag;
+    const matchSearch = n.title.toLowerCase().includes(search.toLowerCase());
+    const matchTag    = activeTag === 'Todas' || n.tags.includes(activeTag);
+    return matchSearch && matchTag;
   });
 
-    return (
+  return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
@@ -47,28 +48,38 @@ const Notes: React.FC = () => {
 
       <IonContent className="ion-padding">
 
-        {/* Buscador */}
         <IonSearchbar
           value={search}
           onIonInput={e => setSearch(e.detail.value!)}
           placeholder="Buscar..."
+          style={{ '--border-radius': '12px' }}
         />
 
-        {/* Filtro de tags */}
+        {/* Tags */}
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8 }}>
-          {['Todas', ...allTags].map(tag => (
-            <IonChip
-              key={tag}
-              color={activeTag === tag ? 'primary' : undefined}
-              onClick={() => setActiveTag(tag)}
-              style={{ whiteSpace: 'nowrap' }}
-            >
-              {tag}
-            </IonChip>
-          ))}
+          {['Todas', ...allTags].map(tag => {
+            const isActive = activeTag === tag;
+            return (
+              <IonChip
+                key={tag}
+                onClick={() => setActiveTag(tag)}
+                style={{
+                  // 1. Estilo tag activo: fondo rojo pastel, texto rojo
+                  backgroundColor: isActive ? '#ffe5e5' : '#f0f0f0',
+                  color:           isActive ? '#cc0000' : '#555',
+                  border:          isActive ? '1px solid #ffb3b3' : '1px solid transparent',
+                  fontWeight:      isActive ? 600 : 400,
+                  borderRadius:    '20px',
+                  whiteSpace:      'nowrap',
+                  transition:      'all 0.2s ease',
+                }}
+              >
+                {tag}
+              </IonChip>
+            );
+          })}
         </div>
 
-        {/* Lista */}
         {filtered.length === 0 ? (
           <div style={{ textAlign: 'center', marginTop: '3rem' }}>
             <IonText color="medium">
@@ -77,28 +88,53 @@ const Notes: React.FC = () => {
             </IonText>
           </div>
         ) : (
-          <IonList>
+          <IonList style={{ background: 'transparent', padding: 0 }}>
             {filtered.map(note => (
               <IonItemSliding key={note.id}>
-                <IonItem lines="full" style={{ '--background': '#ffffff', marginBottom: '8px' }}>
+
+                {/* 3. Tarjetas redondeadas con sombra */}
+                <IonItem
+                  lines="none"
+                  style={{
+                    '--background':      '#ffffff',
+                    '--border-radius':   '16px',
+                    '--inner-padding-end': '8px',
+                    marginBottom:        '10px',
+                    borderRadius:        '16px',
+                    boxShadow:           '0 2px 8px rgba(0,0,0,0.07)',
+                    overflow:            'hidden',
+                  }}
+                >
                   <IonLabel>
-                    <h2 style={{ fontWeight: '600' }}>{note.title}</h2>
-                    <p style={{ color: '#666' }}>{note.content}</p>
-                    <IonNote style={{ fontSize: '12px' }}>{note.date}</IonNote>
-                    {/* Tags de la nota */}
+                    <h2 style={{ fontWeight: 600, marginBottom: 4 }}>{note.title}</h2>
+                    <p style={{ color: '#888', fontSize: 13 }}>{note.content}</p>
+                    <IonNote style={{ fontSize: 12 }}>{note.date}</IonNote>
+
                     {note.tags?.length > 0 && (
-                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
                         {note.tags.map(t => (
-                          <IonChip key={t} style={{ fontSize: 11, height: 20, margin: 0 }}>
+                          <span
+                            key={t}
+                            style={{
+                              background:   '#ffe5e5',
+                              color:        '#cc0000',
+                              fontSize:     11,
+                              borderRadius: 8,
+                              padding:      '2px 8px',
+                              fontWeight:   500,
+                            }}
+                          >
                             {t}
-                          </IonChip>
+                          </span>
                         ))}
                       </div>
                     )}
                   </IonLabel>
+
                   <IonIcon
                     icon={ellipsisVertical}
                     slot="end"
+                    color="medium"
                     onClick={() => setActionNote(note)}
                     style={{ cursor: 'pointer' }}
                   />
@@ -117,14 +153,12 @@ const Notes: React.FC = () => {
           </IonList>
         )}
 
-        {/* FAB */}
         <IonFab vertical="bottom" horizontal="end" slot="fixed">
           <IonFabButton routerLink="/create">
             <IonIcon icon={add} />
           </IonFabButton>
         </IonFab>
 
-        {/* Action sheet menú ⋮ */}
         <IonActionSheet
           isOpen={!!actionNote}
           onDidDismiss={() => setActionNote(null)}

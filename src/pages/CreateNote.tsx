@@ -49,7 +49,7 @@ const CreateNote: React.FC = () => {
 
       <IonContent className="ion-padding">
       <IonItem>
-        <IonLabel position="floating">Título</IonLabel>
+        <IonLabel position="stacked">Título</IonLabel>
         <IonInput
           value={title}
           onIonChange={e => setTitle(e.detail.value!)}
@@ -58,7 +58,7 @@ const CreateNote: React.FC = () => {
       </IonItem>
 
       <IonItem style={{ marginTop: '1rem' }}>
-        <IonLabel position="floating">Contenido</IonLabel>
+        <IonLabel position="stacked">Contenido</IonLabel>
         <IonTextarea
           value={content}
           onIonChange={e => setContent(e.detail.value!)}
